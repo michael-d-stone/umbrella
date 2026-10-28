@@ -1,0 +1,6 @@
+{
+  "manifest_version": 1,
+  "id": "org.example.notes",
+  "name": "Independent Notes",
+  "capabilities": ["org.example.notes.read"]
+}
