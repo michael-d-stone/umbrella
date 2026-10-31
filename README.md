@@ -1,34 +1,51 @@
-# Umbrella
+# Umbrella — Architecture Notes
 
-**Make life palatable. Take the power back.**
+**Working snapshot:** 2026-10-30  
+**Status:** Reconstructed design record; not a specification or implemented-system description.
 
-Umbrella is a FOSS-first, self-hosted platform for making technology easier to use and reducing dependence on constantly changing applications and infrastructure.
+Umbrella is the small, reusable foundation underneath independently useful applications. It gives records stable identity, lets applications express meaningful relationships, controls shared access, and preserves history and provenance. It is **not** a giant application that absorbs every specialized tool.
 
-It lets independently developed applications participate in shared identity, records, relationships, and history. Each application can still run alone, keep its own storage, and choose which information and capabilities to expose. Compatibility does not require project approval, maintenance by Umbrella, or merging an application into this repository.
+The near-term purpose is personal: make **StashOS** and **SlutOS** useful. The foundation should still be small and general enough that independent developers can make their own applications Umbrella-compatible without asking for permission or requiring core changes.
 
-Umbrella aims to connect the tools people already use through explicit, user-controlled agreements. It differs in intent from an application suite with a fixed catalog or a platform that requires applications to move into its storage and lifecycle. These are design commitments, not claims of completed functionality. A dashboard is optional; headless use is a first-class requirement. AI may be an interface, never a prerequisite.
+## Where to read
 
-## Current status
+| Document | Contents |
+| --- | --- |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Purpose, layers, boundaries, and integration principles |
+| [DATA-AND-HISTORY.md](DATA-AND-HISTORY.md) | `umbrellaID`, PostgreSQL, Git, journal, tombstones, ZFS |
+| [APPLICATIONS.md](APPLICATIONS.md) | StashOS, SlutOS, external integrations and what stays separate |
+| [UI-AND-DEPLOYMENT.md](UI-AND-DEPLOYMENT.md) | Web UI, Near/Touch/Couch modes, nginx, HTTPS, VPN, host choices |
+| [DECISIONS.md](DECISIONS.md) | Accepted decisions vs. directions vs. proposals |
+| [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md) | What remains undecided; no premature implementation choices |
 
-This repository contains foundational documentation and a local manifest-discovery proof of concept. It is not a working identity, authorization, sharing, history, or synchronization platform. Specifications clearly separate agreed requirements from proposals and open decisions.
+## How to read the status labels
 
-## Try discovery
+- **Accepted:** The user explicitly chose this direction in conversations.
+- **Direction:** A working architecture choice discussed and agreed as a default, but not final implementation detail.
+- **Proposal:** A possible feature, tool, or design idea; not approved as a requirement.
+- **Open:** No settled decision or no enough evidence to call it settled.
 
-Requires Python 3.11.2 (the tested baseline); no third-party packages, servers, containers, or database are needed.
+## Schematic (conceptual, not deployment topology)
 
-```sh
-python3 poc/discover.py examples
-python3 -m unittest discover -s poc/tests -v
+```text
+Independently useful applications / external sources
+     |                  |                  |
+  StashOS             SlutOS          future apps
+     \                  |                  /
+       optional Umbrella integration contract
+             | identity / type / access
+             | relationships / provenance / time
+             | durable actions / history
+             v
+       PostgreSQL transactional state
+       journal/outbox -> Git logical history
+       file/object storage -> ZFS snapshots
 ```
 
-To discover an existing application, place its declaration in an `umbrella-module.json` file beneath a directory you select, then run `python3 poc/discover.py /path/to/that/directory`. This only reads declarations and prints JSON; it does not run applications or enable sharing. See [the proof of concept](poc/README.md) and [module compatibility](docs/specifications/modules.md).
+An app may remain independent, or may opt into sharing only some records/relationships. **No box here dictates a microservice, process, language, or database schema.**
 
-## Design and participation
+## Sources and limits
 
-Start with [the vision](VISION.md), [architecture](ARCHITECTURE.md), and [foundational decision](docs/decisions/0001-foundational-architecture.md). See [contributing](CONTRIBUTING.md) before proposing changes. No production deployment is provided. Future deployments must use pinned components, reproducible procedures, and user-controlled upgrades.
+This snapshot consolidates the Umbrella conversation of **2026-10-30**, three Project sources all titled `Responsive view modes.txt`, and prior Umbrella discussions (particularly **2026-10-28–29**) recoverable from conversation context. Earlier SlutOS discussions supplied additional background on existing media-analysis work.
 
-## License status
-
-License: Undecided — all rights reserved until a license is selected.
-
-FOSS-first describes Umbrella's intended direction; no open-source license is granted yet. Before the first public release, we will evaluate GPLv3, AGPLv3, and Apache 2.0 against the goals of FOSS, independent third-party modules, and long-term software freedom. No LICENSE file or source license identifiers will be added until a license is selected.
+This is a **first pass**, not an exhaustive audit of every prior Project conversation or all files on the Debian machine. In particular, any code repositories and older Project-source attachments that were not accessible in this pass have **not** been reviewed. When source discussions disagreed across time, later explicit Umbrella choices are described as target architecture, while existing tool implementations are described separately.
